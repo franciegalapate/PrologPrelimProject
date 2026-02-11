@@ -57,4 +57,47 @@ prereq(cs324,[]). % third year standing
 % third year short term
 prereq(cs331,[]). % 4th year standing
 
+do_all_prereqs_met([], _). % base case: all prerequisites met
+do_all_prereqs_met([H|T], CompletedCourses) :- % recursive case
+    member(H, CompletedCourses), % check if the head of the list is in completed courses
+    do_all_prereqs_met(T, CompletedCourses). % check the tail of the list
 
+check_eligibility(_, []). % Base case: List is empty, stop.
+check_eligibility(Completed, [Course|Rest]) :-
+    nl, write('--- Checking Course: '), write(Course), write(' ---'), nl,
+    process_course(Completed, Course), % Check specific course
+    check_eligibility(Completed, Rest). % Move to next course in list
+
+% the user passed a SINGLE course (Atom), not a list.
+check_eligibility(Completed, Course) :-
+    atom(Course),
+    process_course(Completed, Course).
+
+% Course is already completed
+process_course(CompletedCourses, DesiredCourse) :-
+    member(DesiredCourse, CompletedCourses),
+    write('Status: Denied'), nl,
+    write('Reason: You have already completed '), write(DesiredCourse), write('.'), nl, !. 
+
+% Eligible (All prereqs met)
+process_course(CompletedCourses, DesiredCourse) :-
+    prereq(DesiredCourse, Prereqs), 
+    do_all_prereqs_met(Prereqs, CompletedCourses), 
+    write('Status: Approved'), nl,
+    write('Reason: You are eligible to enroll in '), write(DesiredCourse), write('.'), nl, !. 
+
+% Missing Prerequisites
+process_course(CompletedCourses, DesiredCourse) :-
+    prereq(DesiredCourse, Prereqs), 
+    findall(P, (member(P, Prereqs), \+ member(P, CompletedCourses)), Missing), 
+    write('Status: Denied'), nl,
+    write('Reason: Missing prerequisites for '), write(DesiredCourse), write(': '), write(Missing), nl.
+
+% Course is Invalid (Not in curriculum)
+process_course(_, DesiredCourse) :-
+    \+ prereq(DesiredCourse, _), 
+    write('Status: Denied'), nl,
+    write('Reason: The Course '), write(DesiredCourse), write(' is not in the curriculum database.'), nl, !.
+
+
+% query: check_eligibility([completed courses], [desired courses]).
