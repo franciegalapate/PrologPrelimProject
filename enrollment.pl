@@ -4,10 +4,20 @@
 units(cs111, 2).   units(cs111l, 1).
 units(cs112, 2).   units(cs112l, 1).
 units(cs113, 3).
+units(gmath, 3).
+units(gart, 3).
+units(ghist, 3).
+units(fithw, 2).
+units(cfe101, 3).
 
-units(cs121, 3).   units(cs122, 2).
-units(cs122l, 1).  units(cs123, 2).
-units(cs123l, 1).
+units(cs121, 3).
+units(cs122, 2).   units(cs122l, 1).
+units(cs123, 2).   units(cs123l, 1).
+units(gself, 3).
+units(gpcom, 3).
+units(genvi, 3).
+units(fitcs, 2).
+units(cfe102, 3).
 
 units(cs131, 3).
 units(cs132, 3).
@@ -51,20 +61,29 @@ units(cse4, 3).
 
 % PREREQUISITES - prereq(course, list of prerequisites)
 
-% courses w/ no prereq
-prereq(cs111, []).
-prereq(cs112, []).
+% first year first sem
+prereq(cs111, []).   prereq(cs111l, []).
+prereq(cs112, []).   prereq(cs112l, []).
 prereq(cs113, []).
+prereq(gmath, []).
+prereq(gart, []).
+prereq(ghist, []).
+prereq(fithw, []).
+prereq(cfe101, []).
 
 % first year second sem
-prereq(cs121,[cs111]).
-prereq(cs122,[cs112]).
-prereq(cs122l,[cs112]).
-prereq(cs123,[cs112]).
-prereq(cs123l,[cs112]).
+prereq(cs121, [cs111]).
+prereq(cs122, [cs112]).  prereq(cs122l, [cs112]).
+prereq(cs123, [cs112]).  prereq(cs123l, [cs112]).
+prereq(gself, []).
+prereq(gpcom, []).
+prereq(genvi, []).
+prereq(fitcs, []).
+prereq(cfe102, []).
 
 % first year short term
-prereq(cs131,[cs111]).
+prereq(cs131, [cs111]).
+prereq(cs132, []).
 
 % second year first sem
 prereq(cs211,[cs112,cs113]).
@@ -172,4 +191,4 @@ process_course(_, DesiredCourse) :-
 % query format: check_eligibility([completed courses], [desired courses]).
 % query: check_eligibility([cs111,cs111l, cs112, cs112l, cs113], [cs211, cs212]).
 % query: check_eligibility([cs111,cs111l], cs121).
-% query (3rd year standing): check_eligibility([cs111, cs111l, cs112, cs112l, cs113, cs121, cs122, cs122l, cs123, cs123l, cs131, cs132, cs211, cs211l, cs212, cs212l, cs213, cs221, cs221l, cs222, cs222l, cs223, cs231, cs231l], cs324).
+% query (3rd year standing): check_eligibility([cs111, cs111l, cs112, cs112l, cs113, cs121, cs122, cs122l, cs123, cs123l, cs131, cs132, cs211, cs211l, cs212, cs212l, cs213, cs221, cs221l, cs222, cs222l, cs223, cs231, cs231l], [cs324,cs315]).
