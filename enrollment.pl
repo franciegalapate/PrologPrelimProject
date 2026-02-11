@@ -101,15 +101,26 @@ prereq(cs322l,[cs221]).
 prereq(cs323,[cs132,cs211]).
 prereq(cs323l,[cs132,cs211]).
 prereq(cs325,[cs211]).
-prereq(cs324,[]). % third year standing
+prereq(cs324, [third_year_standing]).
 
 % third year short term
-prereq(cs331,[]). % 4th year standing
+prereq(cs331, [fourth_year_standing]).
 
 do_all_prereqs_met([], _). % base case: all prerequisites met
+
 do_all_prereqs_met([H|T], CompletedCourses) :- % recursive case
     member(H, CompletedCourses), % check if the head of the list is in completed courses
     do_all_prereqs_met(T, CompletedCourses). % check the tail of the list
+
+do_all_prereqs_met([third_year_standing|T], CompletedCourses) :-
+    calculate_total_units(CompletedCourses, Total),
+    Total >= 100,
+    do_all_prereqs_met(T, CompletedCourses).
+
+do_all_prereqs_met([fourth_year_standing|T], CompletedCourses) :-
+    calculate_total_units(CompletedCourses, Total),
+    Total >= 145, % Approx units from Years 1, 2, and 3
+    do_all_prereqs_met(T, CompletedCourses).
 
 check_eligibility(_, []). % Base case: List is empty, stop.
 check_eligibility(Completed, [Course|Rest]) :-
