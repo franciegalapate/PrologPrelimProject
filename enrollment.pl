@@ -101,45 +101,54 @@ prereq(cs322l,[cs221]).
 prereq(cs323,[cs132,cs211]).
 prereq(cs323l,[cs132,cs211]).
 prereq(cs325,[cs211]).
+prereq(cs324,[]). % third year standing
 
-% third year & fourth year standing reqs
-prereq(cs324, [third_year_standing]).
-prereq(cse1, [third_year_standing]).
-prereq(cse2, [third_year_standing]).
-prereq(cs331, [fourth_year_standing]).
-prereq(cs422, [fourth_year_standing]).
-prereq(cse3, [fourth_year_standing]).
-prereq(cse4, [fourth_year_standing]).
+% third year short term
+prereq(cs331,[]). % 4th year standing
 
-% fourth year
-prereq(cs411, [cs324]).
-prereq(cs421, [cs411]).
+do_all_prereqs_met([], _). % base case: all prerequisites met
+do_all_prereqs_met([H|T], CompletedCourses) :- % recursive case
+    member(H, CompletedCourses), % check if the head of the list is in completed courses
+    do_all_prereqs_met(T, CompletedCourses). % check the tail of the list
 
-% LOGIC
-can_enroll(CompletedList, TargetCourse) :-
-    prereq(TargetCourse, PrereqList),
-    check_all_prereqs(PrereqList, CompletedList).
+check_eligibility(_, []). % Base case: List is empty, stop.
+check_eligibility(Completed, [Course|Rest]) :-
+    nl, write('--- Checking Course: '), write(Course), write(' ---'), nl,
+    process_course(Completed, Course), % Check specific course
+    check_eligibility(Completed, Rest). % Move to next course in list
 
-check_all_prereqs([], _).
+% the user passed a single course (Atom), not a list.
+check_eligibility(Completed, Course) :-
+    atom(Course),
+    process_course(Completed, Course).
 
-check_all_prereqs([third_year_standing | Tail], CompletedList) :-
-    calculate_total_units(CompletedList, Total),
-    Total >= 100,
-    check_all_prereqs(Tail, CompletedList).
+% Course is already completed
+process_course(CompletedCourses, DesiredCourse) :-
+    member(DesiredCourse, CompletedCourses),
+    write('Status: Denied'), nl,
+    write('Reason: You have already completed '), write(DesiredCourse), write('.'), nl, !. 
 
-check_all_prereqs([fourth_year_standing | Tail], CompletedList) :-
-    calculate_total_units(CompletedList, Total),
-    Total >= 145,
-    check_all_prereqs(Tail, CompletedList).
+% Eligible (All prereqs met)
+process_course(CompletedCourses, DesiredCourse) :-
+    prereq(DesiredCourse, Prereqs), 
+    do_all_prereqs_met(Prereqs, CompletedCourses), 
+    write('Status: Approved'), nl,
+    write('Reason: You are eligible to enroll in '), write(DesiredCourse), write('.'), nl, !. 
 
-check_all_prereqs([Course | Tail], CompletedList) :-
-    Course \= third_year_standing,
-    Course \= fourth_year_standing,
-    member(Course, CompletedList),
-    check_all_prereqs(Tail, CompletedList).
+% Missing Prerequisites
+process_course(CompletedCourses, DesiredCourse) :-
+    prereq(DesiredCourse, Prereqs), 
+    findall(P, (member(P, Prereqs), \+ member(P, CompletedCourses)), Missing), 
+    write('Status: Denied'), nl,
+    write('Reason: Missing prerequisites for '), write(DesiredCourse), write(': '), write(Missing), nl.
 
-calculate_total_units([], 0).
-calculate_total_units([Course | Tail], Total) :-
-    (units(Course, U) -> U = U ; U = 0), % If course not in list, 0 units
-    calculate_total_units(Tail, RemainingUnits),
-    Total is U + RemainingUnits.
+% Course is Invalid (Not in curriculum)
+process_course(_, DesiredCourse) :-
+    \+ prereq(DesiredCourse, _), 
+    write('Status: Denied'), nl,
+    write('Reason: The Course '), write(DesiredCourse), write(' is not in the curriculum database.'), nl, !.
+
+
+% query format: check_eligibility([completed courses], [desired courses]).
+% query: check_eligibility([cs111,cs111l, cs112, cs112l, cs113], [cs211, cs212]).
+% query: check_eligibility([cs111,cs111l], cs121).
