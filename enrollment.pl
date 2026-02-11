@@ -196,20 +196,103 @@ do_all_prereqs_met([fourth_year_standing|T], CompletedCourses) :-
     Total >= 80,
     do_all_prereqs_met(T, CompletedCourses).
 
+% standard case
 do_all_prereqs_met([H|T], CompletedCourses) :-
     H \= third_year_standing,
     H \= fourth_year_standing,
     member(H, CompletedCourses),
     do_all_prereqs_met(T, CompletedCourses).
 
-check_eligibility(_, []). % Base case: List is empty, stop.
-check_eligibility(Completed, [Course|Rest]) :-
+
+% GNU Prolog compatibility: Implements downcase_atom for GNU Prolog
+% this is because, unlike SWI-Prolog, GNU Prolog does not have built-in support for downcase_atom, 
+% which is used to normalize course names to lowercase for case-insensitive comparison.
+downcase_atom(Atom, LowerAtom) :-
+    atom_codes(Atom, Codes),
+    map_to_lower(Codes, LowerCodes),
+    atom_codes(LowerAtom, LowerCodes).
+
+map_to_lower([], []).
+map_to_lower([H|T], [L|R]) :-
+    to_lower(H, L),
+    map_to_lower(T, R).
+
+% Helper: Converts Upper (65-90) to Lower (add 32)
+to_lower(C, L) :- C >= 65, C =< 90, !, L is C + 32.
+to_lower(C, C).
+
+
+% interactive shell & normalization
+start :-
+    nl, write('========================================='), nl,
+    write('   BSCS COURSE ELIGIBILITY CHECKER'), nl,
+    write('========================================='), nl,
+    write('1. Enter lists using brackets: [CS111, cs112]'), nl,
+    write('2. You do NOT need to type a dot (added automatically).'), nl,
+    write('3. Course input is case-insensitive.'), nl,
+    loop.
+
+loop :-
+    nl, write('-----------------------------------------'), nl,
+    write('Enter Completed Courses (or "stop." to exit): '), 
+    read_input(Completed),
+    
+    (Completed = stop -> 
+        write('Exiting program. Goodbye!'), nl
+    ;
+        write('Enter Target Course(s) to Check: '), 
+        read_input(Target),
+        nl, write('--- RESULTS ---'), nl,
+        check_eligibility(Completed, Target),
+        loop
+    ).
+
+% Normalizer: Handles List and Single inputs
+check_eligibility(CompletedRaw, TargetRaw) :-
+    normalize(CompletedRaw, CompletedClean),
+    normalize(TargetRaw, TargetClean),
+    run_check(CompletedClean, TargetClean).
+
+normalize([], []).
+normalize([H|T], [H_Low|T_Low]) :- 
+    downcase_atom(H, H_Low), 
+    normalize(T, T_Low).
+normalize(X, X_Low) :- 
+    atom(X), 
+    downcase_atom(X, X_Low).
+
+% input handler with auto-dot
+read_input(Term) :-
+    read_line_codes(Codes),
+    append(Codes, [46], CodesWithDot), % Adds ASCII 46 (.) automatically
+    parse_term(CodesWithDot, Term).
+
+read_line_codes(Codes) :- get_code(C), process_char(C, Codes).
+
+process_char(10, []) :- !. % Newline
+process_char(13, []) :- !. % Return
+process_char(-1, []) :- !. % End of Stream
+process_char(C, [Lower|Rest]) :- 
+    to_lower(C, Lower), 
+    read_line_codes(Rest).
+
+parse_term(Codes, Term) :- 
+    atom_codes(AtomStr, Codes), 
+    read_term_from_atom(AtomStr, Term, []).
+
+
+
+% MAIN LOGIC
+
+% Handle List of Targets
+run_check(_, []). % Base case: List is empty, stop.
+run_check(Completed, [Course|Rest]) :-
     nl, write('--- Checking Course: '), write(Course), write(' ---'), nl,
     process_course(Completed, Course), % Check specific course
-    check_eligibility(Completed, Rest). % Move to next course in list
+    run_check(Completed, Rest). % Move to next course in list
 
 % the user passed a single course (Atom), not a list.
-check_eligibility(Completed, Course) :-
+run_check(Completed, Course) :-
     atom(Course),
     process_course(Completed, Course).
 
@@ -229,9 +312,17 @@ process_course(CompletedCourses, DesiredCourse) :-
 % Missing Prerequisites
 process_course(CompletedCourses, DesiredCourse) :-
     prereq(DesiredCourse, Prereqs), 
-    findall(P, (member(P, Prereqs), \+ member(P, CompletedCourses)), Missing), 
-    write('Status: Denied'), nl,
-    write('Reason: Missing prerequisites for '), write(DesiredCourse), write(': '), write(Missing), nl.
+    findall(P, (member(P, Prereqs), \+ member(P, CompletedCourses), P \= third_year_standing, P \= fourth_year_standing), Missing), % Find missing prereqs
+    % Check if standing was the issue
+    ( (member(third_year_standing, Prereqs); member(fourth_year_standing, Prereqs)) -> 
+        calculate_total_units(CompletedCourses, Total),
+        write('Status: Denied'), nl,
+        write('Reason: Missing Prereqs: '), write(Missing), nl,
+        write('        (Note: Check if your Total Units ['), write(Total), write('] meet the Year Standing requirement)'), nl
+    ;
+        write('Status: Denied'), nl,
+        write('Reason: Missing prerequisites for '), write(DesiredCourse), write(': '), write(Missing), nl
+    ).
 
 % Course is Invalid (Not in curriculum)
 process_course(_, DesiredCourse) :-
