@@ -68,7 +68,7 @@ check_eligibility(Completed, [Course|Rest]) :-
     process_course(Completed, Course), % Check specific course
     check_eligibility(Completed, Rest). % Move to next course in list
 
-% the user passed a SINGLE course (Atom), not a list.
+% the user passed a single course (Atom), not a list.
 check_eligibility(Completed, Course) :-
     atom(Course),
     process_course(Completed, Course).
@@ -100,4 +100,6 @@ process_course(_, DesiredCourse) :-
     write('Reason: The Course '), write(DesiredCourse), write(' is not in the curriculum database.'), nl, !.
 
 
-% query: check_eligibility([completed courses], [desired courses]).
+% query format: check_eligibility([completed courses], [desired courses]).
+% query: check_eligibility([cs111,cs111l, cs112, cs112l, cs113], [cs211, cs212]).
+% query: check_eligibility([cs111,cs111l], cs121).
