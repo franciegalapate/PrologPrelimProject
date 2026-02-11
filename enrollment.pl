@@ -148,7 +148,6 @@ process_course(_, DesiredCourse) :-
     write('Status: Denied'), nl,
     write('Reason: The Course '), write(DesiredCourse), write(' is not in the curriculum database.'), nl, !.
 
-
 % query format: check_eligibility([completed courses], [desired courses]).
 % query: check_eligibility([cs111,cs111l, cs112, cs112l, cs113], [cs211, cs212]).
 % query: check_eligibility([cs111,cs111l], cs121).
