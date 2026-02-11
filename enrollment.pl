@@ -1,5 +1,12 @@
 % Format: prereq(course, list of prerequisites)
 
+% first year first sem
+prereq(cs111,[]).
+prereq(cs111l,[]).
+prereq(cs112,[]).
+prereq(cs112l,[]).
+prereq(cs113,[]).
+
 % first year second sem
 prereq(cs121,[cs111]).
 prereq(cs122,[cs112]).
@@ -47,6 +54,7 @@ prereq(cs323l,[cs132,cs211]).
 prereq(cs325,[cs211]).
 prereq(cs324,[]). % third year standing
 
-
 % third year short term
 prereq(cs331,[]). % 4th year standing
+
+
