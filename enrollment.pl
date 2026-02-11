@@ -106,20 +106,30 @@ prereq(cs324, [third_year_standing]).
 % third year short term
 prereq(cs331, [fourth_year_standing]).
 
+calculate_total_units([], 0).
+calculate_total_units([Course|Tail], Total) :-
+    (units(Course, U) -> U = U ; U = 0),
+    calculate_total_units(Tail, RemainingUnits),
+    Total is U + RemainingUnits.
+
 do_all_prereqs_met([], _). % base case: all prerequisites met
 
-do_all_prereqs_met([H|T], CompletedCourses) :- % recursive case
-    member(H, CompletedCourses), % check if the head of the list is in completed courses
-    do_all_prereqs_met(T, CompletedCourses). % check the tail of the list
-
+% 3rd year standing
 do_all_prereqs_met([third_year_standing|T], CompletedCourses) :-
     calculate_total_units(CompletedCourses, Total),
-    Total >= 100,
+    Total >= 40,
     do_all_prereqs_met(T, CompletedCourses).
 
+% 4th year standing
 do_all_prereqs_met([fourth_year_standing|T], CompletedCourses) :-
     calculate_total_units(CompletedCourses, Total),
-    Total >= 145, % Approx units from Years 1, 2, and 3
+    Total >= 80,
+    do_all_prereqs_met(T, CompletedCourses).
+
+do_all_prereqs_met([H|T], CompletedCourses) :-
+    H \= third_year_standing,
+    H \= fourth_year_standing,
+    member(H, CompletedCourses),
     do_all_prereqs_met(T, CompletedCourses).
 
 check_eligibility(_, []). % Base case: List is empty, stop.
@@ -162,3 +172,4 @@ process_course(_, DesiredCourse) :-
 % query format: check_eligibility([completed courses], [desired courses]).
 % query: check_eligibility([cs111,cs111l, cs112, cs112l, cs113], [cs211, cs212]).
 % query: check_eligibility([cs111,cs111l], cs121).
+% query (3rd year standing): check_eligibility([cs111, cs111l, cs112, cs112l, cs113, cs121, cs122, cs122l, cs123, cs123l, cs131, cs132, cs211, cs211l, cs212, cs212l, cs213, cs221, cs221l, cs222, cs222l, cs223, cs231, cs231l], cs324).
