@@ -283,6 +283,7 @@ parse_term(Codes, Term) :-
 
 
 % MAIN LOGIC
+% Flow: Input -> Normalize -> Check Eligibility -> Output Result
 
 % Handle List of Targets
 run_check(_, []). % Base case: List is empty, stop.
